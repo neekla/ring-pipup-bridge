@@ -211,7 +211,6 @@ async function startCameraPolling(notifyOnStart) {
 // Set up Ring API object
 ringApi = new Ring.RingApi({
     refreshToken: process.env.API_TOKEN,
-    controlCenterDisplayName: 'ring-to-android-tv',
     cameraDingsPollingSeconds: 5    // Default is 5, less seems to cause API token to expire.
 })
 
