@@ -36,7 +36,7 @@ A `nodejs` application that acts as a bridge between `ring-client-api` and the [
 	> `npm install`
 6. Copy the .env.example file to .env to configure your installation.
 	> `cp .env.example .env`
-7. Open `.env` in your editor and replace the `IP_ADDRESS` variable with the IP of your AndroidTV.
+7. Open `.env` in your editor and replace the `IP_ADDRESSES` variable with the IP address(es) of your Android TV(s).
 8. Generate an API token and save it to `.env`.  Copy the key value only, no quotes.  *Note: keep this secret, as it allows complete access to your Ring account.*
 	> `npx -p ring-client-api ring-auth-cli`
 
@@ -84,10 +84,10 @@ To update the script, simply `cd` to the app directory and run `git pull`.
 
 ## Configuration
 
-| Option  | Explanation  |
+| Option | Explanation |
 |:----------|:----------|
-| `IP_ADDRESS`    | *Address of the IP address of the Android TV running PiPup.  Required.*    |
-| `DISPLAY_TIME`    | *Time, in seconds, to display popup notifications.*    |
+| `IP_ADDRESSES` | *Comma separated IP addresses of the Android TVs running PiPup.  Required.* |
+| `DISPLAY_TIME` | *Time, in seconds, to display popup notifications.* |
 | `API_TOKEN` | *API Token used from Ring* |
 
 ## License & Contributions

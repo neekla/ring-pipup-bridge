@@ -16,8 +16,8 @@ const { exit } = require('process')
 require('dotenv').config()
 
 // Configuration
-const tvIpAddress = process.env.IP_ADDRESS            // IP address of the Android TV you are running PiPup on
-const displayTime = process.env.DISPLAY_TIME || 12    // Display time for notifications, in seconds
+const tvIpAddresses = process.env.IP_ADDRESSES.split(',') // Comma separated IP addresses of the Android TVs you are running PiPup on
+const duration = process.env.DISPLAY_TIME || 12 // Display time for notifications, in seconds
 
 /**
  * Sends a notification to PiPup app on Android TV.
@@ -27,20 +27,18 @@ const displayTime = process.env.DISPLAY_TIME || 12    // Display time for notifi
  * @param {*} exitAfter If true, calls process.exit() after completing request.
  */
 async function sendNotification(title, message, imageFile, exitAfter = false) {
-    const options = {
+    const optionsTemplate = {
         method: "POST",
-        url: "http://" + tvIpAddress + ":7979/notify",
-        port: 7979,
         headers: {
             "Content-Type": "multipart/form-data"
         },
         formData: {
-            "duration": displayTime,
+            duration,
             "position": 0,
-            "title": title,
+            title,
             "titleColor": "#0066cc",
             "titleSize": 20,
-            "message": message,
+            message,
             "messageColor": "#000000",
             "messageSize": 14,
             "backgroundColor": "#ffffff",
@@ -50,16 +48,23 @@ async function sendNotification(title, message, imageFile, exitAfter = false) {
     }
 
     // Fire off POST message to PiPup with 'request'
-    request(options, function (err, res, body) {
-        if (err) {
-            console.log(`[ERROR] Error sending notification: ${title} - ${message}`)
-            console.log(err)
-            process.exitCode = 1
-        } else {
-            console.log(`Sent notification successfully: ${title} - ${message}`)
-        }
-        if (exitAfter) process.exit()
-    })
+    tvIpAddresses.forEach((tvIpAddress) => {
+        const options = {
+            url: "http://" + tvIpAddress + ":7979/notify",
+            ...optionsTemplate
+        };
+
+        request(options, function (err, res, body) {
+            if (err) {
+                console.log(`[ERROR] Error sending notification [${tvIpAddress}]: ${title} - ${message}`)
+                console.log(err.message)
+                process.exitCode = 1
+            } else {
+                console.log(`Sent notification successfully [${tvIpAddress}]: ${title} - ${message}`)
+            }
+            if (exitAfter) process.exit()
+        })
+    });
 }
 
 async function listLocationsAndCameras() {
