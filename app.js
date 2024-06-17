@@ -1,9 +1,9 @@
 /*
  * app.js
- * 
+ *
  * This node application acts as a bridge between the ring-client-api and the PiPup Android
  * application to show Ring camera snapshots as an overlay/popup on Android TV devices.
- * 
+ *
  * Remember to change the tvIpAddress variable and save your API token to token.txt.
  */
 
@@ -16,8 +16,8 @@ const { exit } = require('process')
 require('dotenv').config()
 
 // Configuration
-const tvIpAddress = process.env.R2ATV_IP_ADDRESS            // IP address of the Android TV you are running PiPup on
-const displayTime = process.env.R2ATV_DISPLAY_TIME || 12    // Display time for notifications, in seconds
+const tvIpAddress = process.env.IP_ADDRESS            // IP address of the Android TV you are running PiPup on
+const displayTime = process.env.DISPLAY_TIME || 12    // Display time for notifications, in seconds
 
 /**
  * Sends a notification to PiPup app on Android TV.
@@ -26,7 +26,7 @@ const displayTime = process.env.R2ATV_DISPLAY_TIME || 12    // Display time for 
  * @param {*} imageFile Path to image file, can be blank string to display no image.
  * @param {*} exitAfter If true, calls process.exit() after completing request.
  */
-async function sendNotification(title, message, imageFile, exitAfter = false) {    
+async function sendNotification(title, message, imageFile, exitAfter = false) {
     const options = {
         method: "POST",
         url: "http://" + tvIpAddress + ":7979/notify",
@@ -44,21 +44,21 @@ async function sendNotification(title, message, imageFile, exitAfter = false) {
             "messageColor": "#000000",
             "messageSize": 14,
             "backgroundColor": "#ffffff",
-            "image" : (imageFile == '') ? "" : fs.createReadStream(__dirname + '/' + imageFile),
+            "image": (imageFile == '') ? "" : fs.createReadStream(__dirname + '/' + imageFile),
             "imageWidth": 640
         }
     }
-    
+
     // Fire off POST message to PiPup with 'request'
     request(options, function (err, res, body) {
-        if(err) {
+        if (err) {
             console.log(`[ERROR] Error sending notification: ${title} - ${message}`)
             console.log(err)
             process.exitCode = 1
         } else {
             console.log(`Sent notification successfully: ${title} - ${message}`)
         }
-        if(exitAfter) process.exit()
+        if (exitAfter) process.exit()
     })
 }
 
@@ -70,12 +70,12 @@ async function listLocationsAndCameras() {
     intLocation = 0
     intCamera = 0
 
-    locations.forEach(function(location) {
+    locations.forEach(function (location) {
         intCamera = 0
         console.log(`Found location[${intLocation}]: ${location.name}`)
 
         // Subscribe to each camera at this location.
-        location.cameras.forEach(function(camera) {
+        location.cameras.forEach(function (camera) {
             console.log(`\t - Found ${camera.model} named ${camera.name}. Test with --test ${intLocation},${intCamera}`)
             intCamera++
         })
@@ -100,15 +100,15 @@ async function getTestSnapshot(intLocation = 0, intCamera = 0) {
     const camera = location.cameras[intCamera]
 
     console.log(`Attempting to get snapshot for location #${intLocation}, camera #${intCamera}`)
-    
+
     try {
         const snapshotBuffer = await camera.getSnapshot()
-        console.log('Snapshot size: ' + Math.floor(snapshotBuffer.byteLength/1024) + ' kb')
-    
+        console.log('Snapshot size: ' + Math.floor(snapshotBuffer.byteLength / 1024) + ' kb')
+
         fs.writeFile(__dirname + '/snapshot.png', snapshotBuffer, (err) => {
             // throws an error, you could also catch it here
             if (err) throw err;
-        
+
             // success case, the file was saved
             console.log('Snapshot saved!')
             sendNotification('Test Snapshot', 'This is a test snapshot message!', 'snapshot.png', true)
@@ -130,23 +130,23 @@ async function startCameraPolling(notifyOnStart) {
         console.log('Unable to retrieve camera locations because: ' + error.message)
         process.exit(1) // exit with error code
     })
-    
-    locations.forEach(function(location) {
+
+    locations.forEach(function (location) {
         console.log(`Found location: ${location.name}`)
 
         // Subscribe to each camera at this location.
-        location.cameras.forEach(function(camera) {
+        location.cameras.forEach(function (camera) {
             console.log(`\t - Found ${camera.model} named ${camera.name}.`)
 
             // Start the camera subscription to listen for motion/rings/etc...
             camera.onNewDing.subscribe(async ding => {
-                
+
                 var event = "Unknown Event"
                 var notifyTitle;
                 var notifyMessage;
 
                 // Get friendly name for event happening and set notification params.
-                switch(ding.kind) {
+                switch (ding.kind) {
                     case "motion":
                         event = "Motion detected"
                         notifyTitle = 'Motion Detected'
@@ -170,11 +170,11 @@ async function startCameraPolling(notifyOnStart) {
                     const snapshotBuffer = await camera.getSnapshot().catch(error => {
                         console.log('[ERROR] Unable to retrieve snapshot because:' + error.message)
                     })
-            
+
                     fs.writeFile(__dirname + '/snapshot.png', snapshotBuffer, (err) => {
                         // throws an error, you could also catch it here
                         if (err) throw err;
-                    
+
                         // success case, the file was saved
                         console.log('Snapshot saved!');
                         sendNotification(notifyTitle, notifyMessage, 'snapshot.png')
@@ -191,20 +191,20 @@ async function startCameraPolling(notifyOnStart) {
                 console.log(`Error subscribing to ${location.name} ${camera.name}:`)
                 console.log(err)
             },
-            () => {
-                console.log('Subscription complete.') // We shouldn't get here!
-            })
+                () => {
+                    console.log('Subscription complete.') // We shouldn't get here!
+                })
 
         })
     })
 
     // Send notification on app start, if enabled.
-    if(notifyOnStart) sendNotification('ring-to-android-tv', 'Ring notifications started!', '')
+    if (notifyOnStart) sendNotification('ring-to-android-tv', 'Ring notifications started!', '')
 }
 
 // Set up Ring API object
 ringApi = new Ring.RingApi({
-    refreshToken: process.env.R2ATV_API_TOKEN,
+    refreshToken: process.env.API_TOKEN,
     controlCenterDisplayName: 'ring-to-android-tv',
     cameraDingsPollingSeconds: 5    // Default is 5, less seems to cause API token to expire.
 })
@@ -216,25 +216,25 @@ ringApi.onRefreshTokenUpdated.subscribe(
         console.log('Refresh Token Updated') // Changed from example, don't write new token to log.
 
         if (!oldRefreshToken) {
-        return
+            return
         }
 
         const currentConfig = await promisify(fs.readFile)('.env'),
-        updatedConfig = currentConfig
-            .toString()
-            .replace(oldRefreshToken, newRefreshToken)
+            updatedConfig = currentConfig
+                .toString()
+                .replace(oldRefreshToken, newRefreshToken)
 
         await promisify(fs.writeFile)('.env', updatedConfig)
     }
 )
 
-if(process.argv.includes('--test')) {
+if (process.argv.includes('--test')) {
     // Just grab a snapshot for testing, then exit.
     console.log('Attempting to get demo snapshot...')
     try {
         intArg = process.argv.indexOf('--test')
         var intLocation = intCamera = 0
-        if(process.argv.length > intArg + 1) {
+        if (process.argv.length > intArg + 1) {
             // Attempt to get location,camera from next arg.
             strLocCam = process.argv[intArg + 1]
             intLocation = strLocCam.split(',')[0]
@@ -248,7 +248,7 @@ if(process.argv.includes('--test')) {
     } finally {
         //process.exit()
     }
-} else if(process.argv.includes('--list')) {
+} else if (process.argv.includes('--list')) {
     listLocationsAndCameras()
 } else {
     // Begin polling camera for events
