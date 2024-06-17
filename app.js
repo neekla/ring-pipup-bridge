@@ -145,28 +145,23 @@ async function startCameraPolling(notifyOnStart) {
             console.log(`\t - Found ${camera.model} named ${camera.name}.`)
 
             // Start the camera subscription to listen for motion/rings/etc...
-            camera.onNewDing.subscribe(async ding => {
+            camera.onNewNotification.subscribe(async ({ ding, subtype }) => {
+                let event = "Unknown Event",
+                    notifyTitle,
+                    notifyMessage;
 
-                var event = "Unknown Event"
-                var notifyTitle;
-                var notifyMessage;
-
-                // Get friendly name for event happening and set notification params.
-                switch (ding.kind) {
-                    case "motion":
-                        event = "Motion detected"
-                        notifyTitle = 'Motion Detected'
-                        notifyMessage = `Motion detected at ${camera.name}!`
-                        break
-                    case "ding":
-                        event = "Doorbell pressed"
-                        notifyTitle = 'Doorbell Ring'
-                        notifyMessage = `Doorbell rung at ${camera.name}!`
-                        break
-                    default:
-                        event = `Video started (${ding.kind})`
-                        notifyTitle = 'Video Started'
-                        notifyMessage = `Video started at ${camera.name}`
+                if (ding.detection_type === "motion") {
+                    event = "Motion detected"
+                    notifyTitle = 'Motion Detected'
+                    notifyMessage = `Motion detected at ${camera.name}!`
+                } else if (subtype === "ding") {
+                    event = "Doorbell pressed"
+                    notifyTitle = 'Doorbell Ring'
+                    notifyMessage = `Doorbell rung at ${camera.name}!`
+                } else {
+                    event = `Video started (${ding.kind})`
+                    notifyTitle = 'Video Started'
+                    notifyMessage = `Video started at ${camera.name}`
                 }
 
                 console.log(`[${new Date()}] ${event} on ${camera.name} camera.`)
@@ -191,8 +186,6 @@ async function startCameraPolling(notifyOnStart) {
                     console.log('Unable to get snapshot.')
                     sendNotification(notifyTitle, notifyMessage, 'error.png')
                 }
-
-                console.log('')
             }, err => {
                 console.log(`Error subscribing to ${location.name} ${camera.name}:`)
                 console.log(err)
