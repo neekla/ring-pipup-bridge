@@ -18,6 +18,7 @@ require('dotenv').config()
 // Configuration
 const tvIpAddresses = process.env.IP_ADDRESSES.split(',') // Comma separated IP addresses of the Android TVs you are running PiPup on
 const duration = process.env.DISPLAY_TIME || 12 // Display time for notifications, in seconds
+const position = process.env.POSITION || 2;
 
 /**
  * Sends a notification to PiPup app on Android TV.
@@ -34,7 +35,7 @@ async function sendNotification(title, message, imageFile, exitAfter = false) {
         },
         formData: {
             duration,
-            "position": 0,
+            position,
             title,
             "titleColor": "#0066cc",
             "titleSize": 20,

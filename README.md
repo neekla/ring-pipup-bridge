@@ -88,6 +88,7 @@ To update the script, simply `cd` to the app directory and run `git pull`.
 |:----------|:----------|
 | `IP_ADDRESSES` | *Comma separated IP addresses of the Android TVs running PiPup.  Required.* |
 | `DISPLAY_TIME` | *Time, in seconds, to display popup notifications.* |
+| `POSITION` | *Postion where message display on Android TV: 0 for top right, 1 for top left, 2 for bottom right, 3 for bottom left, 4 for center* |
 | `API_TOKEN` | *API Token used from Ring* |
 
 ## License & Contributions
